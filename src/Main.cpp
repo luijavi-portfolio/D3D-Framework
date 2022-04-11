@@ -9,13 +9,10 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prev_instance, PWSTR command_l
 {
 	Window window(1280, 720, L"My Window");
 
-	MSG message;
-	BOOL result;
-	while ((result = GetMessage(&message, nullptr, 0, 0)) > 0)
+	while (window.ProcessMessage())
 	{
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
+
 	}
 
-	return message.wParam;
+	return 0;
 }

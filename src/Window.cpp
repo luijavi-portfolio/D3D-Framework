@@ -29,6 +29,25 @@ Window::~Window()
 	UnregisterClass(kWindowClassName_, instance_);
 }
 
+bool Window::ProcessMessage()
+{
+	MSG message;
+	BOOL result;
+	while ((result = PeekMessage(&message, nullptr, 0, 0,PM_REMOVE)) > 0)
+	{
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+
+		if (message.message == WM_QUIT)
+		{
+			return false;
+		}
+
+	}
+
+	return true;
+}
+
 void Window::SetTitle(const wchar_t& title)
 {
 	SetWindowText(handle_, &title);
