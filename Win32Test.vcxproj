@@ -93,6 +93,7 @@
     <ClCompile Include="src\ExceptionHandler.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\GraphicsD3D12.cpp" />
+    <ClCompile Include="src\Keyboard.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
@@ -100,6 +101,7 @@
     <ClInclude Include="src\ExceptionHandler.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\GraphicsD3D12.h" />
+    <ClInclude Include="src\Keyboard.h" />
     <ClInclude Include="src\LeanWin32.h" />
     <ClInclude Include="src\Window.h" />
   </ItemGroup>

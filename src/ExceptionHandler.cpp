@@ -10,9 +10,11 @@ ExceptionHandler::ExceptionHandler(int line, const char* file) noexcept
 
 const char* ExceptionHandler::what() const noexcept
 {
-	std::stringstream oss;
+	std::ostringstream oss;
 	oss << GetType() << std::endl
 		<< GetOriginString();
+
+
 	return (what_buffer_ = oss.str()).c_str();
 }
 
@@ -34,7 +36,7 @@ const std::string& ExceptionHandler::GetFile() const noexcept
 const std::string ExceptionHandler::GetOriginString() const noexcept
 {
 	std::ostringstream oss;
-	oss << "[FILE]: " << file_ << "\n"
+	oss << "[FILE]: " << file_ << '\n'
 		<< "[LINE]: " << line_;
 	return oss.str();
 }

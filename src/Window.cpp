@@ -131,20 +131,21 @@ const char* Window::Exception::GetType() const noexcept
 
 std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 {
-	char* message_buffer = nullptr;
+	wchar_t* message_buffer = nullptr;
 	// Win32 Message formating function
 	// Source: https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessage
-	DWORD message_length = FormatMessage(
+	DWORD message_length = FormatMessageW(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPWSTR>(&message_buffer), 0, nullptr);
+		message_buffer, 0, nullptr);
 
 	if (!message_length)
 	{
 		return "Unidentified error code!";
 	}
 
-	std::string error_string = message_buffer;
+	std::wstring ws(message_buffer);
+	std::string error_string(ws.begin(),ws.end());
 	LocalFree(message_buffer);
 	return error_string;
 }
