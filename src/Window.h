@@ -2,7 +2,7 @@
 #define WINDOW_H
 
 #include "Graphics.h"
-
+#include "ExceptionHandler.h"
 #include "LeanWin32.h"
 #include <string>
 
@@ -20,6 +20,20 @@ protected:
 
 class Window : public HandleKey
 {
+public:
+	// A Window exception handling class
+	class Exception : public ExceptionHandler
+	{
+	public:
+		Exception(int line, const char* file, HRESULT hr) noexcept;
+		virtual const char* what() const noexcept override;
+		virtual const char* GetType() const noexcept override;
+		static std::string TranslateErrorCode(HRESULT hr) noexcept;
+		HRESULT GetErrorCode() const noexcept;
+		std::string GetErrorString() const noexcept;
+	private:
+		HRESULT hr_;
+	};
 public:
 	Window(int width, int height, const wchar_t* title);
 	~Window();

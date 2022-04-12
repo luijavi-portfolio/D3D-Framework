@@ -1,5 +1,6 @@
 #include "Window.h"
 #include <cassert>
+#include <sstream>
 
 Window::Window(int width, int height, const wchar_t* title)
 	:
@@ -103,4 +104,57 @@ void Window::CreateWindowClass(WNDCLASSEX& window_class)
 	window_class.hIconSm = nullptr;
 
 	RegisterClassEx(&window_class);
+}
+
+// Window Exception implementation
+Window::Exception::Exception(int line, const char* file, HRESULT hr) noexcept
+	:
+	ExceptionHandler(line, file),
+	hr_(hr)
+{}
+
+const char* Window::Exception::what() const noexcept
+{
+	std::ostringstream oss;
+	oss << GetType() << '\n'
+		<< "[ERROR CODE]: " << GetErrorCode() << '\n'
+		<< "[DESCRIPTION]: " << GetErrorString() << '\n'
+		<< GetOriginString();
+
+	return (what_buffer_ = oss.str()).c_str();
+}
+
+const char* Window::Exception::GetType() const noexcept
+{
+	return "Exception Handler Window Exception";
+}
+
+std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
+{
+	char* message_buffer = nullptr;
+	// Win32 Message formating function
+	// Source: https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessage
+	DWORD message_length = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		reinterpret_cast<LPWSTR>(&message_buffer), 0, nullptr);
+
+	if (!message_length)
+	{
+		return "Unidentified error code!";
+	}
+
+	std::string error_string = message_buffer;
+	LocalFree(message_buffer);
+	return error_string;
+}
+
+HRESULT Window::Exception::GetErrorCode() const noexcept
+{
+	return hr_;
+}
+
+std::string Window::Exception::GetErrorString() const noexcept
+{
+	return TranslateErrorCode(hr_);
 }
