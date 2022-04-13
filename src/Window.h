@@ -1,9 +1,11 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "LeanWin32.h"
+
 #include "Graphics.h"
 #include "ExceptionHandler.h"
-#include "LeanWin32.h"
+#include "Keyboard.h"
 #include <string>
 
 // Used to grant Graphics class access to handle to the Win32 window
@@ -42,6 +44,8 @@ public:
 
 	// Helper functions
 	void SetTitle(const wchar_t& title);
+public:
+	Keyboard keyboard_;
 	
 private:
 	// Win32API-specific functions

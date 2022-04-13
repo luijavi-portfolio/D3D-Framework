@@ -83,6 +83,35 @@ LRESULT Window::WindowProcedure(HWND handle, UINT message, WPARAM wparam, LPARAM
 			PostQuitMessage(0);
 			return 0;
 		} break;
+
+		// Handle what happens when window goes out of focus
+		case WM_KILLFOCUS:
+		{
+			keyboard_.ClearState();
+		} break;
+
+		// Keyboard messages, included WM_SYSKEY for the Alt and F10 keys
+		case WM_SYSKEYDOWN:
+		case WM_KEYDOWN:
+		{
+			// Account of autorepeat
+			// Source: https://docs.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input#keystroke-message-flags
+			if (!(lparam & KF_REPEAT) || keyboard_.AutorepeatIsEnabled())
+			{
+				keyboard_.OnKeyPressed(static_cast<unsigned char>(wparam));
+			}
+		} break;
+		
+		case WM_SYSKEYUP:
+		case WM_KEYUP:
+		{
+			keyboard_.OnKeyReleased(static_cast<unsigned char>(wparam));
+		} break;
+
+		case WM_CHAR:
+		{
+			keyboard_.OnChar(static_cast<unsigned char>(wparam));
+		} break;
 	}
 
 	return DefWindowProc(handle, message, wparam, lparam);
