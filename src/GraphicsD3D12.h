@@ -11,6 +11,6 @@ public:
 	virtual void BeginFrame() override;
 	virtual void PutPixel(int x, int y, int r, int g, int b) override;
 private:
-
+	
 };
 #endif // !GRAPHICS_D3D12_H

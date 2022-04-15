@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Graphics.h"
 #include <cassert>
 #include <sstream>
 
@@ -19,10 +20,24 @@ Window::Window(int width, int height, const wchar_t* title)
 		CW_USEDEFAULT, CW_USEDEFAULT, width_, height_,
 		nullptr, nullptr, instance_, this);
 
+	handle_ = nullptr;
+
+	// Check that handle_ is valid
+	if (!handle_)
+	{
+		// TODO: Will need to handle this better - currently not providing useful info
+		throw (Window::Exception(__LINE__, __FILE__, ERROR_ACTIVE_CONNECTIONS));
+	}
+
 	// Show dat window
 	ShowWindow(handle_, SW_SHOWDEFAULT);
 	UpdateWindow(handle_);
 }
+
+Window::Window(const wchar_t* title)
+	:
+	Window(Graphics::kScreenWidth,Graphics::kScreenHeight,title)
+{ }
 
 Window::~Window()
 {
@@ -87,7 +102,7 @@ LRESULT Window::WindowProcedure(HWND handle, UINT message, WPARAM wparam, LPARAM
 		// Handle what happens when window goes out of focus
 		case WM_KILLFOCUS:
 		{
-			keyboard_.ClearState();
+			keyboard.ClearState();
 		} break;
 
 		// Keyboard messages, included WM_SYSKEY for the Alt and F10 keys
@@ -96,21 +111,71 @@ LRESULT Window::WindowProcedure(HWND handle, UINT message, WPARAM wparam, LPARAM
 		{
 			// Account of autorepeat
 			// Source: https://docs.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input#keystroke-message-flags
-			if (!(lparam & KF_REPEAT) || keyboard_.AutorepeatIsEnabled())
+			if (!(lparam & KF_REPEAT) || keyboard.AutorepeatIsEnabled())
 			{
-				keyboard_.OnKeyPressed(static_cast<unsigned char>(wparam));
+				keyboard.OnKeyPressed(static_cast<unsigned char>(wparam));
 			}
 		} break;
 		
 		case WM_SYSKEYUP:
 		case WM_KEYUP:
 		{
-			keyboard_.OnKeyReleased(static_cast<unsigned char>(wparam));
+			keyboard.OnKeyReleased(static_cast<unsigned char>(wparam));
 		} break;
 
 		case WM_CHAR:
 		{
-			keyboard_.OnChar(static_cast<unsigned char>(wparam));
+			keyboard.OnChar(static_cast<unsigned char>(wparam));
+		} break;
+
+		// Mouse messages
+		case WM_MOUSEMOVE:
+		{
+			// Source: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousemove
+			// Source: https://docs.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-makepoints
+			const POINTS pt = MAKEPOINTS(lparam);
+			mouse.OnMouseMove(pt.x, pt.y);
+		} break;
+
+		case WM_LBUTTONDOWN:
+		{
+			// Source: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttondown
+			const POINTS pt = MAKEPOINTS(lparam);
+			mouse.OnLeftIsPressed(pt.x, pt.y);
+
+		} break;
+
+		case WM_LBUTTONUP:
+		{
+			const POINTS pt = MAKEPOINTS(lparam);
+			mouse.OnLeftIsReleased(pt.x, pt.y);
+		} break;
+
+		case WM_RBUTTONDOWN:
+		{
+			const POINTS pt = MAKEPOINTS(lparam);
+			mouse.OnRightIsPressed(pt.x, pt.y);
+		} break;
+
+		case WM_RBUTTONUP:
+		{
+			const POINTS pt = MAKEPOINTS(lparam);
+			mouse.OnRightIsReleased(pt.x, pt.y);
+		} break;
+
+		case WM_MOUSEWHEEL:
+		{
+			const POINTS pt = MAKEPOINTS(lparam);
+
+			if (GET_WHEEL_DELTA_WPARAM(wparam) > 0)
+			{
+				mouse.OnWheelUp(pt.x, pt.y);
+			}
+			else if (GET_WHEEL_DELTA_WPARAM(wparam) < 0)
+			{
+				mouse.OnWheelDown(pt.x, pt.y);
+			}
+
 		} break;
 	}
 
@@ -136,11 +201,16 @@ void Window::CreateWindowClass(WNDCLASSEX& window_class)
 }
 
 // Window Exception implementation
-Window::Exception::Exception(int line, const char* file, HRESULT hr) noexcept
+Window::Exception::Exception(int line, const char* file, HRESULT hr)
 	:
 	ExceptionHandler(line, file),
 	hr_(hr)
 {}
+
+//Window::Exception::Exception(int line, const char* file, const std::wstring & note)
+//	:
+//	ExceptionHandler(line, file, note)
+//{}
 
 const char* Window::Exception::what() const noexcept
 {
@@ -160,23 +230,25 @@ const char* Window::Exception::GetType() const noexcept
 
 std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 {
-	wchar_t* message_buffer = nullptr;
+	char* message_buffer = nullptr;
 	// Win32 Message formating function
 	// Source: https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessage
-	DWORD message_length = FormatMessageW(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+	DWORD message_length = FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | 
+		FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		message_buffer, 0, nullptr);
+		reinterpret_cast<LPSTR>(&message_buffer), 0, nullptr);
 
 	if (!message_length)
 	{
 		return "Unidentified error code!";
 	}
 
-	std::wstring ws(message_buffer);
-	std::string error_string(ws.begin(),ws.end());
+	/*std::wstring ws(message_buffer);
+	std::string error_string(ws.begin(),ws.end());*/
+	std::string error_message = message_buffer;
 	LocalFree(message_buffer);
-	return error_string;
+	return error_message;
 }
 
 HRESULT Window::Exception::GetErrorCode() const noexcept

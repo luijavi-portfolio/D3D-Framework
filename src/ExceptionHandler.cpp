@@ -3,10 +3,16 @@
 
 ExceptionHandler::ExceptionHandler(int line, const char* file) noexcept
 	:
-	line_(line),
-	file_(file)
-{
-}
+	file_(file),
+	line_(line)
+{ }
+
+//ExceptionHandler::ExceptionHandler(int line, const char* file, const std::wstring& note) noexcept
+//	:
+//	note_(note),
+//	file_(file),
+//	line_(line)
+//{ }
 
 const char* ExceptionHandler::what() const noexcept
 {

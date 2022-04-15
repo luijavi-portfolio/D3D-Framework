@@ -9,7 +9,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prev_instance, PWSTR command_l
 {
 	try
 	{
-		Window window(1280, 720, L"My Window");
+		Window window(1280, 768, L"My Window");
 	
 		while (window.ProcessMessage())
 		{

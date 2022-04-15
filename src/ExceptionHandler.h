@@ -9,6 +9,7 @@ class ExceptionHandler : public std::exception
 {
 public:
 	ExceptionHandler(int line, const char* file) noexcept;
+	/*ExceptionHandler(int line, const char* file, const std::wstring& note) noexcept;*/
 	const char* what() const noexcept override;	// from std::noexcept
 	virtual const char* GetType() const noexcept;
 	int GetLine() const noexcept;
@@ -17,8 +18,9 @@ public:
 protected:
 	mutable std::string what_buffer_;
 private:
-	int line_;
+	// std::wstring note_;
 	std::string file_;
+	int line_;
 
 };
 #endif // !EXCEPTION_HANDLING_H

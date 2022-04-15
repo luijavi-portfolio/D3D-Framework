@@ -6,6 +6,7 @@
 #include "Graphics.h"
 #include "ExceptionHandler.h"
 #include "Keyboard.h"
+#include "Mouse.h"
 #include <string>
 
 // Used to grant Graphics class access to handle to the Win32 window
@@ -27,7 +28,8 @@ public:
 	class Exception : public ExceptionHandler
 	{
 	public:
-		Exception(int line, const char* file, HRESULT hr) noexcept;
+		Exception(int line, const char* file, HRESULT hr);
+		/*Exception(int line, const char* file, const std::wstring& note);*/
 		virtual const char* what() const noexcept override;
 		virtual const char* GetType() const noexcept override;
 		static std::string TranslateErrorCode(HRESULT hr) noexcept;
@@ -38,6 +40,7 @@ public:
 	};
 public:
 	Window(int width, int height, const wchar_t* title);
+	Window(const wchar_t* title);
 	~Window();
 
 	bool ProcessMessage();
@@ -45,8 +48,8 @@ public:
 	// Helper functions
 	void SetTitle(const wchar_t& title);
 public:
-	Keyboard keyboard_;
-	
+	Keyboard keyboard;
+	Mouse mouse;
 private:
 	// Win32API-specific functions
 	static LRESULT CALLBACK SetupWindowProcedure(HWND handle, UINT message, WPARAM wparam, LPARAM lparam);

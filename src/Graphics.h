@@ -8,7 +8,9 @@ public:
 	virtual void EndFrame() = 0;
 	virtual void BeginFrame() = 0;
 	virtual void PutPixel(int x, int y, int r, int g, int b) = 0;
-private:
+public:
+	static constexpr int kScreenWidth = 1280;
+	static constexpr int kScreenHeight = 768;
 };
 
 #endif // !GRAPHICS_H
