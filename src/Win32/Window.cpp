@@ -198,8 +198,9 @@ LRESULT Window::WindowProcedure(HWND handle, UINT message, WPARAM wparam, LPARAM
 
 		case WM_MOUSEWHEEL:
 		{
+			// TODO: May have to account for "WHEEL_DELTA" being 120, or something, idk.
+			// See: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousehwheel
 			const POINTS pt = MAKEPOINTS(lparam);
-
 			if (GET_WHEEL_DELTA_WPARAM(wparam) > 0)
 			{
 				mouse.OnWheelUp(pt.x, pt.y);
