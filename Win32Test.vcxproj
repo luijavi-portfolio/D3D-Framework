@@ -96,16 +96,16 @@
     <ClCompile Include="src\Keyboard.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mouse.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\Win32\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ExceptionHandler.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\GraphicsD3D12.h" />
     <ClInclude Include="src\Keyboard.h" />
-    <ClInclude Include="src\LeanWin32.h" />
+    <ClInclude Include="src\Win32\LeanWin32.h" />
     <ClInclude Include="src\Mouse.h" />
-    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\Win32\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,7 +3,7 @@
 #define UNICODE
 #endif // !UNICODE
 
-#include "Window.h"
+#include "Win32\Window.h"
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prev_instance, PWSTR command_line, int command_show)
 {
