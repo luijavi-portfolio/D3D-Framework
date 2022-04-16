@@ -20,6 +20,8 @@ public:
 				kWheelUp,
 				kWheelDown,
 				kMove,
+				kEnter,
+				kLeave,
 				kInvalid
 			};
 	public:

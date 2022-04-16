@@ -14,13 +14,19 @@ Window::Window(int width, int height, const wchar_t* title)
 	CreateWindowClass(wc);
 	RegisterClassEx(&wc);
 
+	RECT wr;
+	wr.left = 350;
+	wr.right = wr.left + Graphics::kScreenWidth;
+	wr.top = 100;
+	wr.bottom = wr.top + Graphics::kScreenHeight;
+
+	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+
 	// Create window
 	handle_ = CreateWindow(kWindowClassName_, title,
 		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, width_, height_,
 		nullptr, nullptr, instance_, this);
-
-	handle_ = nullptr;
 
 	// Check that handle_ is valid
 	if (!handle_)
@@ -134,7 +140,34 @@ LRESULT Window::WindowProcedure(HWND handle, UINT message, WPARAM wparam, LPARAM
 			// Source: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousemove
 			// Source: https://docs.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-makepoints
 			const POINTS pt = MAKEPOINTS(lparam);
-			mouse.OnMouseMove(pt.x, pt.y);
+
+			// Handle mouse movement depending on whether it's in our outside of the window
+			if (pt.x >= 0 && pt.x < width_ && pt.y >= 0 && pt.y < height_)
+			{
+				mouse.OnMouseMove(pt.x, pt.y);
+				if (!mouse.IsInWindow())
+				{
+					SetCapture(handle);
+					mouse.OnMouseEnter();
+				}
+			}
+			else
+			{
+				// Keep pumping mouse movement messages even if mouse move outside of window,
+				// but only if the left, right, or middle buttons are being pressed and held
+				if (wparam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON))
+				{
+					mouse.OnMouseMove(pt.x, pt.y);
+				}
+				else
+				{
+					// If the buttons are released (or are up), then we release capture and
+					// generate a mouse leave event
+					ReleaseCapture();
+					mouse.OnMouseLeave();
+				}
+			}
+			
 		} break;
 
 		case WM_LBUTTONDOWN:
