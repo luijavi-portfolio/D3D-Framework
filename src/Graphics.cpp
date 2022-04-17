@@ -1,6 +1,7 @@
 #include "Graphics.h"
-#include "Win32\Window.h"
+#include "Window.h"
 
 Graphics::Graphics(HandleKey&)
 {
+
 }

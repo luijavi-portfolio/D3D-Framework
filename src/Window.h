@@ -3,10 +3,10 @@
 
 #include "LeanWin32.h"
 
-#include "..\Graphics.h"
-#include "..\ExceptionHandler.h"
-#include "..\Keyboard.h"
-#include "..\Mouse.h"
+#include "Graphics.h"
+#include "ExceptionHandler.h"
+#include "Keyboard.h"
+#include "Mouse.h"
 #include <string>
 
 // Used to grant Graphics class access to handle to the Win32 window
@@ -41,6 +41,8 @@ public:
 public:
 	Window(int width, int height, const wchar_t* title);
 	Window(const wchar_t* title);
+	Window(const Window&) = delete;
+	Window& operator=(const Window&) = delete;
 	~Window();
 
 	bool ProcessMessage();

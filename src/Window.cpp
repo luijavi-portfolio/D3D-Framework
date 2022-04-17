@@ -1,5 +1,5 @@
 #include "Window.h"
-#include "..\Graphics.h"
+#include "Graphics.h"
 #include <cassert>
 #include <sstream>
 
@@ -55,6 +55,7 @@ bool Window::ProcessMessage()
 {
 	MSG message;
 	BOOL result;
+	// PeekMessage is non-blocking
 	while ((result = PeekMessage(&message, nullptr, 0, 0,PM_REMOVE)) > 0)
 	{
 		TranslateMessage(&message);
@@ -64,7 +65,6 @@ bool Window::ProcessMessage()
 		{
 			return false;
 		}
-
 	}
 
 	return true;
@@ -279,8 +279,6 @@ std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 		return "Unidentified error code!";
 	}
 
-	/*std::wstring ws(message_buffer);
-	std::string error_string(ws.begin(),ws.end());*/
 	std::string error_message = message_buffer;
 	LocalFree(message_buffer);
 	return error_message;

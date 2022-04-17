@@ -3,17 +3,19 @@
 #define UNICODE
 #endif // !UNICODE
 
-#include "Win32\Window.h"
+#include "Window.h"
+#include "App.h"
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prev_instance, PWSTR command_line, int command_show)
 {
 	try
 	{
 		Window window(1280, 768, L"My Window");
+		App game_app(window);
 	
 		while (window.ProcessMessage())
 		{
-			// Game to run here
+			game_app.Run();
 		}
 	}
 	catch (const ExceptionHandler& e)
