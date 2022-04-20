@@ -2,7 +2,9 @@
 #define GRAPHICS_H
 
 #include "LeanWin32.h"
+#include "ExceptionHandler.h"
 #include <d3d12.h>
+#include <DirectXMath.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
 
@@ -30,8 +32,20 @@ private:
 	void LoadAssets();
 	void PopulateCommandList();
 	void WaitForPreviousFrame();
+
+	// Exception handler - may want to move this
+	void ThrowIfFailed(HRESULT hr)
+	{
+		throw (Window::Exception(__LINE__, __FILE__, hr));
+	}
 private:
 	HWND handle_;
+
+	struct Vertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT4 color;
+	};
 
 	// TODO: Figure out what this FrameCount refers to
 	// Source:https://docs.microsoft.com/en-us/windows/win32/direct3d12/creating-a-basic-direct3d-12-component
@@ -61,6 +75,9 @@ private:
 	HANDLE fence_event_;
 	ComPtr<ID3D12Fence>	fence_;
 	UINT64 fence_value_;
+
+	// TODO: This will probably have to be moved to another file
+	float aspect_ratio_;
 };
 
 #endif // !GRAPHICS_H
