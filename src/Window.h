@@ -3,17 +3,20 @@
 
 #include "LeanWin32.h"
 
-#include "Graphics.h"
 #include "ExceptionHandler.h"
 #include "Keyboard.h"
 #include "Mouse.h"
+#include "Graphics.h"
 #include <string>
+#include <memory>
 
 // Used to grant Graphics class access to handle to the Win32 window
 class HandleKey
 {
 	friend Graphics::Graphics(HandleKey&);
 public:
+	HandleKey(const HandleKey&) = delete;
+	HandleKey& operator=(const HandleKey&) = delete;
 protected:
 	HandleKey() = default;
 protected:

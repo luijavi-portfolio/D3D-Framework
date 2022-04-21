@@ -35,7 +35,7 @@ Window::Window(int width, int height, const wchar_t* title)
 		throw (Window::Exception(__LINE__, __FILE__, "Invalid handle!"));
 	}
 
-	// Show dat window
+	// Newly created windows start off as hidden
 	ShowWindow(handle_, SW_SHOWDEFAULT);
 	UpdateWindow(handle_);
 }

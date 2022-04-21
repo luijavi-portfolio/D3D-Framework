@@ -1,24 +1,15 @@
 #include "Graphics.h"
 #include "Window.h"
+#include "DirectX12/d3dx12.h"
 
+#pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
 Graphics::Graphics(HandleKey& handle_key)
-	:
-	handle_(handle_key.handle_)
-{ }
-
-void Graphics::OnInit()
 {
-	LoadPipeline();
-	LoadAssets();
-}
 
-// TODO: This function could probably be broken down further
-void Graphics::LoadPipeline()
-{
 #if defined(_DEBUG)
-	// Enable the D312 debug layer
+	// Enable the debug layer
 	{
 		ComPtr<ID3D12Debug> debug_controller;
 		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
@@ -28,25 +19,22 @@ void Graphics::LoadPipeline()
 	}
 #endif
 
-	// Create the device
-	ComPtr<IDXGIFactory7> factory;
+	// Create factory (for device)
+	// Source: https://docs.microsoft.com/en-us/windows/win32/direct3d12/creating-a-basic-direct3d-12-component#loadpipeline
+	ComPtr<IDXGIFactory4> factory;
 	HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
-	
+
 	if (FAILED(hr))
 	{
-		throw (Window::Exception(__LINE__, __FILE__, hr));
+		throw Window::Exception(__LINE__, __FILE__, "Failed to create factory!");
 	}
-
-	ComPtr<IDXGIAdapter1> hardware_adapter;
 
 	// Scan DXGI adapters looking for one that supports Direct3D 12
 	// Source: https://walbourn.github.io/anatomy-of-direct3d-12-create-device/
-	// Also source: https://github.com/microsoft/DirectX-Graphics-Samples/blob/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle/DXSample.cpp
-	for (UINT adapter_index = 0;
-		 DXGI_ERROR_NOT_FOUND != factory->EnumAdapters1(adapter_index, &hardware_adapter);
-		 ++adapter_index)
+	ComPtr<IDXGIAdapter1> hardware_adapter;
+	for (UINT adapter_index = 0; DXGI_ERROR_NOT_FOUND != factory->EnumAdapters1(adapter_index, &hardware_adapter); ++adapter_index)
 	{
-		DXGI_ADAPTER_DESC1 desc;
+		DXGI_ADAPTER_DESC1 desc{};
 		hr = hardware_adapter->GetDesc1(&desc);
 
 		if (FAILED(hr))
@@ -56,100 +44,114 @@ void Graphics::LoadPipeline()
 
 		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
 		{
-			// Don't select the Basi Render Driver adapter
+			// Don't select the Basic Render Driver adapter
 			continue;
 		}
 
-		// Check to see if adapter supports Direct3D 12,
-		// but don't create the actual device yet.
+		// Check to see if the adapter supports Direct3D 12, but don't create the actual device yet
 		if (SUCCEEDED(D3D12CreateDevice(hardware_adapter.Get(), D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)))
 		{
 			break;
 		}
 	}
 
-	// Describe and create the command queue
+	// Create device
+	hr = D3D12CreateDevice(hardware_adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device_));
+
+	if (FAILED(hr))
+	{
+		throw Window::Exception(__LINE__, __FILE__, "Failed to create device!");
+	}
+
+	// Check feature support
+	static const D3D_FEATURE_LEVEL kFeatureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_12_1,
+		D3D_FEATURE_LEVEL_12_0,
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+	};
+
+	D3D12_FEATURE_DATA_FEATURE_LEVELS feat_levels =
+	{
+		_countof(kFeatureLevels), kFeatureLevels, D3D_FEATURE_LEVEL_11_0
+	};
+
+	D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL_11_0;
+
+	hr = device_->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &feat_levels, sizeof(feat_levels));
+
+	if (SUCCEEDED(hr))
+	{
+		feature_level = feat_levels.MaxSupportedFeatureLevel;
+	}
+
+	// Before creating the swapchain, must describe and create the command queue
 	D3D12_COMMAND_QUEUE_DESC queue_desc = {};
 	queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
 	hr = device_->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&command_queue_));
-
 	if (FAILED(hr))
 	{
-		throw Window::Exception(__LINE__, __FILE__, hr);
+		throw Window::Exception(__LINE__, __FILE__, "Failed to create command queue!");
 	}
-
-	// Describe and create the swap chain
-	DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
-	swap_chain_desc.BufferCount = kFrameCount_;
-	swap_chain_desc.BufferDesc.Width = kScreenWidth;
-	swap_chain_desc.BufferDesc.Height= kScreenHeight;
-	// A four-component, 32-bit unsigned-normalized-integer format that supports 8 bits per channel including alpha.
-	// Source: https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
-	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	
-	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swap_chain_desc.OutputWindow = handle_; // TODO: May have to decouple this a little more
+	
+	// Now to describe the swap chain
+	// Source: https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1
+	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
+	swap_chain_desc.Width = 0;
+	swap_chain_desc.Height = 0;
+	swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swap_chain_desc.Stereo = FALSE;
 	swap_chain_desc.SampleDesc.Count = 1;
-	swap_chain_desc.Windowed = TRUE;
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swap_chain_desc.BufferCount = kFrameCount;
+	swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swap_chain_desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	
+	ComPtr<IDXGISwapChain1> swap_chain;
+	// Source: https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd
+	hr = factory->CreateSwapChainForHwnd(command_queue_.Get(), handle_key.handle_, &swap_chain_desc, nullptr, nullptr, &swap_chain);
 
-	ComPtr<IDXGISwapChain> swap_chain;
-	// Swap chain needs the queue so that it can force a flush on it.
-	hr = factory->CreateSwapChain(command_queue_.Get(), &swap_chain_desc, &swap_chain);
 	if (FAILED(hr))
 	{
-		throw (Window::Exception(__LINE__, __FILE__, hr));
+		throw Window::Exception(__LINE__, __FILE__, "Failed to create swap chain!");
 	}
 
 	hr = swap_chain.As(&swap_chain_);
-
-	frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
-
-	// Create descriptor heaps
-	{
-		// Describe and create a render target view (RTV) descriptor heap
-		D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {};
-		heap_desc.NumDescriptors = kFrameCount_;
-		heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		hr = device_->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&descriptor_heap_));
-
-		if (FAILED(hr))
-		{
-			throw (Window::Exception(__LINE__, __FILE__, hr));
-		}
-
-		descriptor_size_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	}
-
-	// Create the frame resources
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE descriptor_handle(descriptor_heap_->GetCPUDescriptorHandleForHeapStart());
-
-		// Create an RTV for each frame
-		for (UINT n = 0; n < kFrameCount_; ++n)
-		{
-			hr = swap_chain_->GetBuffer(n, IID_PPV_ARGS(&render_targets_[n]));
-			
-			if (FAILED(hr))
-			{
-				throw (Window::Exception(__LINE__, __FILE__, hr));
-			}
-
-			device_->CreateRenderTargetView(render_targets_[n].Get(), nullptr, descriptor_handle);
-			descriptor_handle.ptr = SIZE_T(INT64(descriptor_handle.ptr) + INT64(1) * INT64(descriptor_size_));
-		}
-	}
-
-	hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator_));
 	if (FAILED(hr))
 	{
-		throw (Window::Exception(__LINE__, __FILE__, hr));
+		// TODO: Come up with more descriptive error code?
+		throw Window::Exception(__LINE__, __FILE__, hr);
 	}
 }
 
-void Graphics::LoadAssets()
+Graphics::~Graphics()
 {
-	// TODO: Implement
+	if (command_queue_)
+	{
+		command_queue_->Release();
+	}
+
+	if (device_)
+	{
+		device_->Release();
+	}
+
+	if (swap_chain_)
+	{
+		swap_chain_->Release();
+	}
+
+	if (factory_)
+	{
+		factory_->Release();
+	}
+}
+
+void Graphics::EndFrame()
+{
+	
 }
