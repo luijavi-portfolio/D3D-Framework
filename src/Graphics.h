@@ -22,11 +22,15 @@ public:
 	static constexpr int kScreenWidth = 1280;
 	static constexpr int kScreenHeight = 768;
 private:
-	ComPtr<ID3D12CommandQueue> command_queue_;
-	ComPtr<ID3D12Device> device_;
-	ComPtr<IDXGISwapChain1> swap_chain_;
-	ComPtr<IDXGIFactory2> factory_;
 	static const UINT kFrameCount = 2;
+	ComPtr<ID3D12CommandQueue>		command_queue_;
+	ComPtr<ID3D12Device>			device_;
+	ComPtr<ID3D12Resource>			render_targets_[kFrameCount];
+	ComPtr<ID3D12CommandAllocator>	command_allocator_;
+	ComPtr<IDXGISwapChain1>			swap_chain_;
+	ComPtr<IDXGIFactory2>			factory_;
+	ComPtr<ID3D12DescriptorHeap>	rtv_heap_;
+	UINT rtv_descriptor_size_;
 };
 
 #endif // !GRAPHICS_H

@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "DirectX12/d3dx12.h"
 
+
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -128,6 +129,46 @@ Graphics::Graphics(HandleKey& handle_key)
 		// TODO: Come up with more descriptive error code?
 		throw Window::Exception(__LINE__, __FILE__, hr);
 	}
+
+	// Create descriptor heaps
+	{
+		// Describe and create a render target view (RTV) descriptor heap
+		D3D12_DESCRIPTOR_HEAP_DESC rtv_heap_desc = {};
+		rtv_heap_desc.NumDescriptors = kFrameCount;
+		rtv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		hr = device_->CreateDescriptorHeap(&rtv_heap_desc, IID_PPV_ARGS(&rtv_heap_));
+
+		if (FAILED(hr))
+		{
+			throw Window::Exception(__LINE__, __FILE__, "Failed to create descriptor heap description!");
+		}
+
+		rtv_descriptor_size_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
+
+	// Create frame resources
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(rtv_heap_->GetCPUDescriptorHandleForHeapStart());
+
+		// Create an RTV for each frame
+		for (UINT n = 0; n < kFrameCount; ++n)
+		{
+			hr = swap_chain_->GetBuffer(n, IID_PPV_ARGS(&render_targets_[n]));
+			if (FAILED(hr))
+			{
+				throw Window::Exception(__LINE__, __FILE__, "Failed to create an rtv!");
+			}
+			device_->CreateRenderTargetView(render_targets_[n].Get(), nullptr, rtv_handle);
+			rtv_handle.Offset(1, rtv_descriptor_size_);
+		}
+	}
+
+	hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator_));
+	if (FAILED(hr))
+	{
+		throw Window::Exception(__LINE__, __FILE__, "Failed to create command allocator!");
+	}
 }
 
 Graphics::~Graphics()
@@ -142,6 +183,11 @@ Graphics::~Graphics()
 		device_->Release();
 	}
 
+	if (command_allocator_)
+	{
+		command_allocator_->Release();
+	}
+
 	if (swap_chain_)
 	{
 		swap_chain_->Release();
@@ -151,10 +197,15 @@ Graphics::~Graphics()
 	{
 		factory_->Release();
 	}
+
+	if (rtv_heap_)
+	{
+		rtv_heap_->Release();
+	}
 }
 
 void Graphics::EndFrame()
 {
-	// Testing D3D12 with clearing clearing ou tthe back buffer
+	
 	swap_chain_->Present(1u, 0);
 }
