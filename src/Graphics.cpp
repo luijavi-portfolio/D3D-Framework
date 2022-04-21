@@ -8,16 +8,18 @@
 Graphics::Graphics(HandleKey& handle_key)
 {
 
-#if defined(_DEBUG)
-	// Enable the debug layer
-	{
-		ComPtr<ID3D12Debug> debug_controller;
-		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
-		{
-			debug_controller->EnableDebugLayer();
-		}
-	}
-#endif
+	// Disabled D3D12 debug layer, since it was impacting performance so much... will have
+	// to figure out why later...
+//#if defined(_DEBUG)
+//	// Enable the debug layer
+//	{
+//		ComPtr<ID3D12Debug> debug_controller;
+//		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
+//		{
+//			debug_controller->EnableDebugLayer();
+//		}
+//	}
+//#endif
 
 	// Create factory (for device)
 	// Source: https://docs.microsoft.com/en-us/windows/win32/direct3d12/creating-a-basic-direct3d-12-component#loadpipeline
@@ -153,5 +155,6 @@ Graphics::~Graphics()
 
 void Graphics::EndFrame()
 {
-	
+	// Testing D3D12 with clearing clearing ou tthe back buffer
+	swap_chain_->Present(1u, 0);
 }
