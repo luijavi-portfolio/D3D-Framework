@@ -21,13 +21,30 @@ public:
 	
 
 	void EndFrame();
+private:
+	void CreateCommandObjects();
 public:
 	static constexpr int kScreenWidth = 1280;
 	static constexpr int kScreenHeight = 768;
 private:
 	static const UINT kFrameCount = 2;
-	ComPtr<IDXGIFactory4> factory_;
-	ComPtr<ID3D12Device> device_;
+
+	// IDXGI objects
+	ComPtr<IDXGIFactory4>				factory_;
+	ComPtr<ID3D12Device>				device_;
+	ComPtr<ID3D12Fence>					fence_;
+	ComPtr<ID3D12CommandQueue>			command_queue_;
+	ComPtr<ID3D12CommandAllocator>		command_list_allocator_;
+	ComPtr<ID3D12GraphicsCommandList>	command_list_;
+
+
+	// Descriptor sizes
+	UINT rtv_descriptor_size_;		// Render Target View
+	UINT dsv_descriptor_size_;		// Depth Stencil View
+	UINT cbv_srv_descriptor_size_;	// Constant Buffer View and Shader Resource View
+	UINT msaa_quality_;
+
+	DXGI_FORMAT back_buffer_format_;
 };
 
 #endif // !GRAPHICS_H
