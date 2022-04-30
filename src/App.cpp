@@ -22,4 +22,5 @@ void App::UpdateLogic()
 
 void App::ComposeFrame()
 {
+	
 }

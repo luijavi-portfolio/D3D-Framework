@@ -9,18 +9,20 @@
 Graphics::Graphics(HandleKey& handle_key)
 {
 
-	// Disabled D3D12 debug layer, since it was impacting performance so much... will have
-	// to figure out why later...
-//#if defined(_DEBUG)
-//	// Enable the debug layer
-//	{
-//		ComPtr<ID3D12Debug> debug_controller;
-//		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
-//		{
-//			debug_controller->EnableDebugLayer();
-//		}
-//	}
-//#endif
+	UINT dxgi_factory_flags = 0;
+
+#if defined(_DEBUG)
+	// Enable the debug layer
+	{
+		ComPtr<ID3D12Debug> debug_controller;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
+		{
+			debug_controller->EnableDebugLayer();
+			// Enable additional debug layers
+			dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
+		}
+	}
+#endif
 
 	// Create factory (for device)
 	// Source: https://docs.microsoft.com/en-us/windows/win32/direct3d12/creating-a-basic-direct3d-12-component#loadpipeline
@@ -169,38 +171,52 @@ Graphics::Graphics(HandleKey& handle_key)
 	{
 		throw Window::Exception(__LINE__, __FILE__, "Failed to create command allocator!");
 	}
+
+	hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator_.Get(), nullptr, IID_PPV_ARGS(&command_list_));
+
+	if (FAILED(hr))
+	{
+		throw Window::Exception(__LINE__, __FILE__, "Failed to create command list!");
+	}
+
+	
 }
 
 Graphics::~Graphics()
 {
-	if (command_queue_)
+	if (command_queue_ != nullptr)
 	{
 		command_queue_->Release();
 	}
 
-	if (device_)
+	if (device_ != nullptr)
 	{
 		device_->Release();
 	}
 
-	if (command_allocator_)
+	if (command_allocator_ != nullptr)
 	{
 		command_allocator_->Release();
 	}
 
-	if (swap_chain_)
+	if (swap_chain_ != nullptr)
 	{
 		swap_chain_->Release();
 	}
 
-	if (factory_)
+	if (factory_ != nullptr)
 	{
 		factory_->Release();
 	}
 
-	if (rtv_heap_)
+	if (rtv_heap_ != nullptr)
 	{
 		rtv_heap_->Release();
+	}
+
+	if (command_list_ != nullptr)
+	{
+		command_list_->Release();
 	}
 }
 
