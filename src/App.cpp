@@ -12,7 +12,7 @@ void App::Run()
 {
 	UpdateLogic();
 	ComposeFrame();
-	gfx_.EndFrame();
+	
 }
 
 void App::UpdateLogic()
