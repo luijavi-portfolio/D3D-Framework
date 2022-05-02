@@ -23,6 +23,7 @@ public:
 	void EndFrame();
 private:
 	void CreateCommandObjects();
+	void CreateSwapChain(HWND& handle);
 public:
 	static constexpr int kScreenWidth = 1280;
 	static constexpr int kScreenHeight = 768;
@@ -36,6 +37,7 @@ private:
 	ComPtr<ID3D12CommandQueue>			command_queue_;
 	ComPtr<ID3D12CommandAllocator>		command_list_allocator_;
 	ComPtr<ID3D12GraphicsCommandList>	command_list_;
+	ComPtr<IDXGISwapChain>				swap_chain_;
 
 
 	// Descriptor sizes
@@ -43,6 +45,9 @@ private:
 	UINT dsv_descriptor_size_;		// Depth Stencil View
 	UINT cbv_srv_descriptor_size_;	// Constant Buffer View and Shader Resource View
 	UINT msaa_quality_;
+	bool msaa_state_ = false;
+
+	DXGI_RATIONAL refresh_rate_ = { 60u, 1u };
 
 	DXGI_FORMAT back_buffer_format_;
 };

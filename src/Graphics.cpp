@@ -51,8 +51,9 @@ Graphics::Graphics(HandleKey& handle_key)
 	msaa_quality_ = ms_quality_levels.NumQualityLevels;
 	assert(msaa_quality_ > 0 && "Unexpected MSAA quality level.");
 
-	// Create command queue and command list
+	CreateCommandObjects();
 	
+	CreateSwapChain(handle_key.handle_);
 }
 
 Graphics::~Graphics()
@@ -103,4 +104,37 @@ void Graphics::CreateCommandObjects()
 	// refer to the command list, we will Reset it, and it needs to be
 	// closed before calling Reset.
 	command_list_->Close();
+}
+
+void Graphics::CreateSwapChain(HWND& handle)
+{
+	// Desribe and create the swap chain
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
+	
+	// Buffer description
+	swap_chain_desc.BufferDesc.Height = kScreenHeight;
+	swap_chain_desc.BufferDesc.Width = kScreenWidth;
+	swap_chain_desc.BufferDesc.RefreshRate = refresh_rate_;
+	swap_chain_desc.BufferDesc.Format = back_buffer_format_;
+	swap_chain_desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	swap_chain_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	
+	// Sample description
+	swap_chain_desc.SampleDesc.Count = msaa_state_ ? 4 : 1;
+	swap_chain_desc.SampleDesc.Quality = msaa_state_ ? (msaa_quality_ - 1) : 0;
+	
+	// Remainder of swap chain desc
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swap_chain_desc.BufferCount = kFrameCount;
+	swap_chain_desc.OutputWindow = handle;
+	swap_chain_desc.Windowed = TRUE;
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	// Note: Swap chain uses queue to perform flush.
+	ThrowIfFailed(factory_->CreateSwapChain(
+		command_queue_.Get(),
+		&swap_chain_desc,
+		swap_chain_.GetAddressOf()
+	));
 }
