@@ -138,3 +138,22 @@ void Graphics::CreateSwapChain(HWND& handle)
 		swap_chain_.GetAddressOf()
 	));
 }
+
+void Graphics::CreateRtvAndDsvDescriptorHeaps()
+{
+	D3D12_DESCRIPTOR_HEAP_DESC rtv_heap_desc{};
+	rtv_heap_desc.NumDescriptors = kFrameCount;
+	rtv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtv_heap_desc.NodeMask = 0;
+
+	ThrowIfFailed(device_->CreateDescriptorHeap(&rtv_heap_desc, IID_PPV_ARGS(rtv_heap_.GetAddressOf())));
+
+	D3D12_DESCRIPTOR_HEAP_DESC dsv_heap_desc{};
+	dsv_heap_desc.NumDescriptors = 1;
+	dsv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsv_heap_desc.Flags= D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsv_heap_desc.NodeMask= 0;
+
+	ThrowIfFailed(device_->CreateDescriptorHeap(&dsv_heap_desc, IID_PPV_ARGS(dsv_heap_.GetAddressOf())));
+}

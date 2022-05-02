@@ -24,11 +24,13 @@ public:
 private:
 	void CreateCommandObjects();
 	void CreateSwapChain(HWND& handle);
+	void CreateRtvAndDsvDescriptorHeaps();
 public:
 	static constexpr int kScreenWidth = 1280;
 	static constexpr int kScreenHeight = 768;
 private:
 	static const UINT kFrameCount = 2;
+	int current_back_buffer_ = 0;
 
 	// IDXGI objects
 	ComPtr<IDXGIFactory4>				factory_;
@@ -38,6 +40,8 @@ private:
 	ComPtr<ID3D12CommandAllocator>		command_list_allocator_;
 	ComPtr<ID3D12GraphicsCommandList>	command_list_;
 	ComPtr<IDXGISwapChain>				swap_chain_;
+	ComPtr<ID3D12DescriptorHeap>		rtv_heap_;	// Render Target View descriptor heap
+	ComPtr<ID3D12DescriptorHeap>		dsv_heap_;	// depth/stencil view descriptor heap
 
 
 	// Descriptor sizes
