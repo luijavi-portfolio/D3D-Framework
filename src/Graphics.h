@@ -25,6 +25,8 @@ private:
 	void CreateCommandObjects();
 	void CreateSwapChain(HWND& handle);
 	void CreateRtvAndDsvDescriptorHeaps();
+	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView() const;
 public:
 	static constexpr int kScreenWidth = 1280;
 	static constexpr int kScreenHeight = 768;

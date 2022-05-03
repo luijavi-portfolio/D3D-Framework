@@ -156,4 +156,19 @@ void Graphics::CreateRtvAndDsvDescriptorHeaps()
 	dsv_heap_desc.NodeMask= 0;
 
 	ThrowIfFailed(device_->CreateDescriptorHeap(&dsv_heap_desc, IID_PPV_ARGS(dsv_heap_.GetAddressOf())));
+
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Graphics::CurrentBackBufferView() const
+{
+	// CD3DX12 constructor to offset to th eRTV of the current back buffer
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		rtv_heap_->GetCPUDescriptorHandleForHeapStart(),	// handle start
+		current_back_buffer_,	// index to offset
+		rtv_descriptor_size_);	// byte size of descriptor
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Graphics::DepthStencilView() const
+{
+	return dsv_heap_->GetCPUDescriptorHandleForHeapStart();
 }
