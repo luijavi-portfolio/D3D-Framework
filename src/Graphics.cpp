@@ -54,6 +54,23 @@ Graphics::Graphics(HandleKey& handle_key)
 	CreateCommandObjects();
 	
 	CreateSwapChain(handle_key.handle_);
+
+	CreateRtvAndDsvDescriptorHeaps();
+
+	// Create Render Target View
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_heap_handle(rtv_heap_->GetCPUDescriptorHandleForHeapStart());
+
+	for (UINT i = 0; i < kFrameCount; ++i)
+	{
+		// Get the ith buffer in the swap chain
+		ThrowIfFailed(swap_chain_->GetBuffer(i, IID_PPV_ARGS(&swap_chain_buffer_[i])));
+
+		// Create an RTV to it
+		device_->CreateRenderTargetView(swap_chain_buffer_[i].Get(), nullptr, rtv_heap_handle);
+
+		// Next entry in the heap
+		rtv_heap_handle.Offset(1, rtv_descriptor_size_);
+	}
 }
 
 Graphics::~Graphics()
@@ -67,12 +84,6 @@ inline void Graphics::ThrowIfFailed(HRESULT hr)
 	{
 		throw Window::Exception(__LINE__, __FILE__, hr);
 	}
-}
-
-void Graphics::EndFrame()
-{
-	
-	
 }
 
 void Graphics::CreateCommandObjects()

@@ -25,6 +25,7 @@ private:
 	void CreateCommandObjects();
 	void CreateSwapChain(HWND& handle);
 	void CreateRtvAndDsvDescriptorHeaps();
+	void CreateRenderTargetView();
 	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView() const;
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView() const;
 public:
@@ -44,6 +45,7 @@ private:
 	ComPtr<IDXGISwapChain>				swap_chain_;
 	ComPtr<ID3D12DescriptorHeap>		rtv_heap_;	// Render Target View descriptor heap
 	ComPtr<ID3D12DescriptorHeap>		dsv_heap_;	// depth/stencil view descriptor heap
+	ComPtr<ID3D12Resource>				swap_chain_buffer_[kFrameCount];
 
 
 	// Descriptor sizes
