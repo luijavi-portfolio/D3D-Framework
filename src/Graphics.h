@@ -46,6 +46,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap>		rtv_heap_;	// Render Target View descriptor heap
 	ComPtr<ID3D12DescriptorHeap>		dsv_heap_;	// depth/stencil view descriptor heap
 	ComPtr<ID3D12Resource>				swap_chain_buffer_[kFrameCount];
+	ComPtr<ID3D12Resource>				depth_stencil_buffer_;
 
 
 	// Descriptor sizes
@@ -58,6 +59,7 @@ private:
 	DXGI_RATIONAL refresh_rate_ = { 60u, 1u };
 
 	DXGI_FORMAT back_buffer_format_;
+	DXGI_FORMAT depth_stencil_format_;
 };
 
 #endif // !GRAPHICS_H
