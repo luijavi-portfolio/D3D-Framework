@@ -241,8 +241,10 @@ void Graphics::FlushCommandQueue()
 	// Wait until the GPU has completed commands up to this fence point
 	if (fence_->GetCompletedValue() < current_fence_)
 	{
+		HANDLE event_handle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+
 		// Fire event when GPU hits current fence
-		HANDLE event_handle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+		ThrowIfFailed(fence_->SetEventOnCompletion(current_fence_, event_handle));
 
 		// Wait until the GPU hits current fence event is fired
 		WaitForSingleObject(event_handle, INFINITE);
