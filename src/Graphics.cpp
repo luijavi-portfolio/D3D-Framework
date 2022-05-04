@@ -9,7 +9,8 @@
 Graphics::Graphics(HandleKey& handle_key)
 	:
 	back_buffer_format_(DXGI_FORMAT_R8G8B8A8_UNORM),
-	depth_stencil_format_(DXGI_FORMAT_D24_UNORM_S8_UINT)
+	depth_stencil_format_(DXGI_FORMAT_D24_UNORM_S8_UINT),
+	current_fence_(0)
 {
 #if defined(DEBUG) || (_DEBUG)
 	{
@@ -128,7 +129,10 @@ Graphics::Graphics(HandleKey& handle_key)
 
 Graphics::~Graphics()
 {
-	
+	if (device_)
+	{
+		FlushCommandQueue();
+	}
 }
 
 inline void Graphics::ThrowIfFailed(HRESULT hr)
@@ -221,6 +225,29 @@ void Graphics::CreateRtvAndDsvDescriptorHeaps()
 
 	ThrowIfFailed(device_->CreateDescriptorHeap(&dsv_heap_desc, IID_PPV_ARGS(dsv_heap_.GetAddressOf())));
 
+}
+
+// Source: https://github.com/d3dcoder/d3d12book/blob/master/Common/d3dApp.cpp
+void Graphics::FlushCommandQueue()
+{
+	// Advance the fence value to mark commands up to this fence point
+	current_fence_++;
+
+	// Add an instruction to the command queue to set a new fence point. Because we
+	// are on the GPU timeline, the new fence point won't be set until the GPU finishes
+	// processing all the commands prior to this Signal()
+	ThrowIfFailed(command_queue_->Signal(fence_.Get(), current_fence_));
+
+	// Wait until the GPU has completed commands up to this fence point
+	if (fence_->GetCompletedValue() < current_fence_)
+	{
+		// Fire event when GPU hits current fence
+		HANDLE event_handle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+
+		// Wait until the GPU hits current fence event is fired
+		WaitForSingleObject(event_handle, INFINITE);
+		CloseHandle(event_handle);
+	}
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Graphics::CurrentBackBufferView() const

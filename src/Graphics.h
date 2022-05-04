@@ -25,7 +25,7 @@ private:
 	void CreateCommandObjects();
 	void CreateSwapChain(HWND& handle);
 	void CreateRtvAndDsvDescriptorHeaps();
-	void CreateRenderTargetView();
+	void FlushCommandQueue();
 	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView() const;
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView() const;
 public:
@@ -54,6 +54,7 @@ private:
 	UINT dsv_descriptor_size_;		// Depth Stencil View
 	UINT cbv_srv_descriptor_size_;	// Constant Buffer View and Shader Resource View
 	UINT msaa_quality_;
+	UINT64 current_fence_;
 	bool msaa_state_ = false;
 
 	DXGI_RATIONAL refresh_rate_ = { 60u, 1u };
