@@ -110,7 +110,16 @@ Graphics::Graphics(HandleKey& handle_key)
 		D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	command_list_->ResourceBarrier(1, &state_after);
 
+	// Set the viewport
+	D3D12_VIEWPORT viewport{};
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+	viewport.Width = static_cast<FLOAT>(kScreenWidth);
+	viewport.Height = static_cast<FLOAT>(kScreenHeight);
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 
+	command_list_->RSSetViewports(1, &viewport);
 }
 
 Graphics::~Graphics()
