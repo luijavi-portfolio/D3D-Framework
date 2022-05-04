@@ -120,6 +120,10 @@ Graphics::Graphics(HandleKey& handle_key)
 	viewport.MaxDepth = 1.0f;
 
 	command_list_->RSSetViewports(1, &viewport);
+
+	// Set the scissor rectangles
+	scissor_rect_ = { 0, 0, kScreenWidth / 2, kScreenHeight / 2 };
+	command_list_->RSSetScissorRects(1, &scissor_rect_);
 }
 
 Graphics::~Graphics()

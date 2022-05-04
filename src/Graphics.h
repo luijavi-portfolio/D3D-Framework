@@ -60,6 +60,7 @@ private:
 
 	DXGI_FORMAT back_buffer_format_;
 	DXGI_FORMAT depth_stencil_format_;
+	D3D12_RECT scissor_rect_;
 };
 
 #endif // !GRAPHICS_H
