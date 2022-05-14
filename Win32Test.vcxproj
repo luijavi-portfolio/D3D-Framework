@@ -16,6 +16,7 @@
     <ProjectGuid>{0b948680-2ce4-451a-adf1-b805c7736da8}</ProjectGuid>
     <RootNamespace>Win32Test</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>D3D Framework</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
