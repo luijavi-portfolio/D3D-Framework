@@ -19,8 +19,6 @@ public:
 	// TODO: Better handle these exceptions
 	inline void ThrowIfFailed(HRESULT hr);
 	
-
-	void EndFrame();
 private:
 	void CreateCommandObjects();
 	void CreateSwapChain(HWND& handle);

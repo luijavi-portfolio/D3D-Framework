@@ -92,6 +92,7 @@
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\ExceptionHandler.cpp" />
+    <ClCompile Include="src\GameTimer.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\Keyboard.cpp" />
     <ClCompile Include="src\Main.cpp" />
